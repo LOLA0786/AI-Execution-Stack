@@ -1,0 +1,9 @@
+name: support_review
+
+steps:
+  - user_query
+  - ai_draft
+  - policy_check
+  - approval
+  - response_sent
+  - audit_logged
