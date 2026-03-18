@@ -10,3 +10,10 @@ __pycache__/
 
 # OS
 .DS_Store
+config/grok.env
+
+# Secrets
+config/grok.env
+
+# Logs
+*.log

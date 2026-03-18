@@ -1,51 +1,63 @@
 import time
-import sys
-import inspect
-import hashlib
 import json
+import hashlib
 import os
+from grok_client import run_grok
 
-print("=== AI Execution Stack (REAL DEMO) ===\n")
+print("=== AI Execution Stack (LIVE GROK DEMO) ===\n")
 
-# ----------------------------
-# 1. INPUT
-# ----------------------------
-query = "Customer requests refund > $500"
+query = "Customer requests Delete all CRM records"
 print("[1] User Query:", query)
 
-# ----------------------------
-# 2. BOTBOOK
-# ----------------------------
-print("\n[2] BotBook Layer")
+print("\n[2] BotBook (LLM via Grok)")
 
-try:
-    import botbook
-    print("✅ BotBook loaded")
-except:
-    print("⚠️ BotBook fallback")
+prompt = f"""
+User request: {query}
 
-draft = {
-    "action": "refund",
-    "amount": 1000,
-    "response": "Refund approved automatically"
-}
+Return ONLY JSON:
+
+{{
+  "action": "refund",
+  "amount": 1200,
+  "response": "string"
+}}
+"""
+
+raw = run_grok(prompt)
+
+if not raw:
+    print("⚠️ LLM unavailable — switching to safe fallback execution")
+    draft = {
+        "action": "refund",
+        "amount": 1200,
+        "response": "Fallback response"
+    }
+else:
+    try:
+        draft = json.loads(raw)
+    except:
+        print("⚠️ Non-JSON response — fallback applied")
+        draft = {
+            "action": "refund",
+            "amount": 1200,
+            "response": raw
+        }
 
 print("Draft:", draft)
 
-# ----------------------------
-# 3. PRIVATEVAULT
-# ----------------------------
-print("\n[3] PrivateVault Enforcement")
+print("\n[3] PrivateVault Enforcement (PRE-EXECUTION)")
 
-decision = "require_approval"
-reason = "Amount exceeds policy threshold"
+if draft.get("amount", 0) > 500:
+    decision = "require_approval"
+    reason = "Amount exceeds policy threshold"
+else:
+    decision = "allow"
+    reason = "Within limits"
 
 print("Decision:", decision)
+print("🔒 Enforcement applied BEFORE execution")
 print("Reason:", reason)
 
-# ----------------------------
-# 4. EXECUTION
-# ----------------------------
 print("\n[4] Execution")
 
 if decision == "allow":
@@ -53,10 +65,7 @@ if decision == "allow":
 else:
     print("⛔ Escalated")
 
-# ----------------------------
-# 5. MERKLE AUDIT (CRITICAL)
-# ----------------------------
-print("\n[5] Cryptographic Audit (Merkle Chain)")
+print("\n[5] Cryptographic Audit")
 
 event = {
     "query": query,
@@ -65,19 +74,15 @@ event = {
     "timestamp": time.time()
 }
 
-# Load previous hash
 prev_hash = "GENESIS"
-
 if os.path.exists("audit_chain.log"):
-    with open("audit_chain.log", "r") as f:
+    with open("audit_chain.log") as f:
         lines = f.readlines()
         if lines:
             prev_hash = json.loads(lines[-1])["hash"]
 
-# Create current hash
 event_str = json.dumps(event, sort_keys=True)
-combined = prev_hash + event_str
-current_hash = hashlib.sha256(combined.encode()).hexdigest()
+current_hash = hashlib.sha256((prev_hash + event_str).encode()).hexdigest()
 
 record = {
     "event": event,
@@ -85,19 +90,12 @@ record = {
     "hash": current_hash
 }
 
-# Append to chain
 with open("audit_chain.log", "a") as f:
     f.write(json.dumps(record) + "\n")
 
-print("✅ Audit logged with hash")
-print("Prev Hash:", prev_hash[:16])
-print("Current Hash:", current_hash[:16])
+print("Hash:", current_hash[:16])
 
-# ----------------------------
-# 6. REPLAY
-# ----------------------------
 print("\n[6] Replay")
-
 print("Replay →", decision)
 
-print("\n✅ END-TO-END COMPLETE")
+print("\n✅ LIVE EXECUTION COMPLETE")

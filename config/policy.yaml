@@ -1,0 +1,4 @@
+rules:
+  - name: financial_protection
+    condition: "action == 'refund' and amount > 500"
+    decision: "require_approval"
