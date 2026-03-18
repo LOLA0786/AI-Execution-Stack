@@ -1,5 +1,5 @@
 #!/bin/bash
 
-echo "Starting AI Execution Stack Demo..."
+echo "🚀 Running REAL AI Execution Stack Demo..."
 
-python3 demo/run_demo.py
+python3 demo/real_demo.py
